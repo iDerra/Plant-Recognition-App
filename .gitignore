@@ -1,0 +1,7 @@
+__tests__
+android
+.bundle
+ios
+node_modules
+Gemfile
+package-lock.json
