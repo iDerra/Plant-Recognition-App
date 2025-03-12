@@ -1,5 +1,6 @@
 __tests__
-android
+PlantApp/android/*
+!PlantApp/android/app/build.gradle
 .bundle
 ios
 node_modules
