@@ -1,4 +1,4 @@
-import { launchCamera, ImagePickerResponse } from 'react-native-image-picker';
+import { launchCamera, launchImageLibrary, ImagePickerResponse, CameraOptions, ImageLibraryOptions } from 'react-native-image-picker';
 import { Alert } from 'react-native';
 import { requestCameraPermission } from './permissions';
 
@@ -9,29 +9,63 @@ export const takePictureAndGetUri = async (): Promise<string | null> => {
         return null;
     }
 
-    const options = {
+    const options: CameraOptions = {
         mediaType: 'photo',
         quality: 0.5,
-        saveToPhotos: true,
+        saveToPhotos: false, // This saves to the *device's* gallery, not just your app.
     };
 
     return new Promise((resolve) => {
         launchCamera(options, (response: ImagePickerResponse) => {
-            if (response.didCancel) {
-                console.log('The user cancelled the image capture');
-                resolve(null);
-            } else if (response.errorCode) {
-                console.log('ImagePicker Error: ', response.errorMessage);
-                Alert.alert("Error", response.errorMessage || "Unknown error when taking the photo");
-                resolve(null);
-            } else {
-                const firstAsset = response.assets && response.assets[0];
-                if (firstAsset && firstAsset.uri) {
-                resolve(firstAsset.uri);
-                } else {
-                resolve(null);
-                }
-            }
-        });
+        if (response.didCancel) {
+          console.log('The user cancelled the image capture');
+          resolve(null);
+        } else if (response.errorCode) {
+          console.log('ImagePicker Error: ', response.errorMessage);
+          Alert.alert('Error', response.errorMessage || 'Unknown error when taking the photo');
+          resolve(null);
+        } else {
+          const firstAsset = response.assets && response.assets[0];
+          if (firstAsset && firstAsset.uri) {
+            resolve(firstAsset.uri);
+          } else {
+            resolve(null);
+          }
+        }
+      });
     });
-};
+  };
+  
+  
+  export const pickImageFromGallery = async (): Promise<string | null> => {
+      const hasPermission = await requestCameraPermission(); // Request permissions
+      if (!hasPermission) {
+          return null;
+      }
+  
+      const options: ImageLibraryOptions = {
+          mediaType: 'photo',
+          quality: 0.5,
+      };
+  
+      return new Promise((resolve) => {
+          launchImageLibrary(options, (response: ImagePickerResponse) => {
+              if (response.didCancel) {
+                  console.log('User cancelled image picker');
+                  resolve(null);
+              } else if (response.errorCode) {
+                  console.log('ImagePicker Error: ', response.errorMessage);
+                  Alert.alert("Error", response.errorMessage || "Unknown error picking image");
+                  resolve(null);
+              } else {
+                const firstAsset = response.assets && response.assets[0];
+                if(firstAsset && firstAsset.uri) {
+                  resolve(firstAsset.uri);
+                } else {
+                  resolve(null)
+                }
+              }
+          });
+      });
+  };
+  

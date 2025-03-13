@@ -1,3 +1,4 @@
+// SettingsScreen.tsx
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -11,26 +12,23 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
 interface Props {
-  onSave: (apiKey: string) => void;
-  savedApiKey: string;
-  navigation: any; // Add navigation prop
+  navigation: any;
   route: any;
 }
 
-const SettingsScreen: React.FC<Props> = ({ onSave, navigation, route }) => {
+const SettingsScreen: React.FC<Props> = ({ navigation, route }) => {
   const [apiKey, setApiKey] = useState('');
   const savedApiKey = route.params?.savedApiKey;
 
   useEffect(() => {
-    setApiKey(savedApiKey);  // Load savedApiKey immediately
+    setApiKey(savedApiKey);
   }, [savedApiKey]);
 
   const handleSave = async () => {
     try {
       await AsyncStorage.setItem('plantnetApiKey', apiKey);
-      onSave(apiKey);
       Alert.alert('Success', 'API key saved successfully!');
-      navigation.navigate('Home', { apiKey: apiKey }); // Navigate back to the previous screen
+      navigation.navigate('Home', { apiKey: apiKey }); // Pass apiKey back as a parameter
     } catch (e) {
       console.error("Error saving API key:", e);
       Alert.alert('Error', 'Failed to save API key.');
@@ -42,35 +40,36 @@ const SettingsScreen: React.FC<Props> = ({ onSave, navigation, route }) => {
   };
 
   return (
+    // ... rest of your SettingsScreen JSX ... (no changes here)
     <View style={styles.outerContainer}> {/* Contenedor externo */}
-      <View style={styles.header}>
-        <Text style={styles.headerText}>Pl@ntNet API Key</Text>
-        <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
-          <Icon name="angle-left" size={28} color="#fff" />
+    <View style={styles.header}>
+      <Text style={styles.headerText}>Pl@ntNet API Key</Text>
+      <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
+        <Icon name="angle-left" size={28} color="#fff" />
+      </TouchableOpacity>
+    </View>
+
+    <View style={styles.container}>
+      <TextInput
+        style={styles.input}
+        placeholder="Enter your API key"
+        value={apiKey}
+        onChangeText={setApiKey}
+        secureTextEntry={false}
+      />
+      <View style={styles.buttonContainer}> {/* Contenedor para los botones */}
+        <TouchableOpacity style={[styles.button, styles.buttonSave]} onPress={handleSave}>
+          <Text style={styles.textStyle}>Save</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.button, styles.buttonCancel]}
+          onPress={() => navigation.goBack()} // Use navigation.goBack()
+        >
+          <Text style={styles.textStyle}>Cancel</Text>
         </TouchableOpacity>
       </View>
-
-      <View style={styles.container}>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter your API key"
-          value={apiKey}
-          onChangeText={setApiKey}
-          secureTextEntry={false}
-        />
-        <View style={styles.buttonContainer}> {/* Contenedor para los botones */}
-          <TouchableOpacity style={[styles.button, styles.buttonSave]} onPress={handleSave}>
-            <Text style={styles.textStyle}>Save</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.button, styles.buttonCancel]}
-            onPress={() => navigation.goBack()} // Use navigation.goBack()
-          >
-            <Text style={styles.textStyle}>Cancel</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
     </View>
+  </View>
   );
 };
 

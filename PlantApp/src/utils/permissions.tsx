@@ -3,22 +3,26 @@ import { PermissionsAndroid, Platform, Alert } from 'react-native';
 export const requestCameraPermission = async () => {
     if (Platform.OS === 'android') {
         try {
-            const granted = await PermissionsAndroid.request(
+            const granted = await PermissionsAndroid.requestMultiple([
                 PermissionsAndroid.PERMISSIONS.CAMERA,
-                {
-                    title: 'Camera permission',
-                    message: 'The app needs access to the camera to take photos.',
-                    buttonNeutral: 'Ask later',
-                    buttonNegative: 'Cancel',
-                    buttonPositive: 'OK',
-                },
-            );
-        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-            return true;
-        } else {
-            Alert.alert('Camera permission denied!');
-            return false;
-        }
+                PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES, //For Android 13+, use READ_MEDIA_IMAGES
+                PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE, //For Android < 13
+            ]);
+
+            if (
+                granted[PermissionsAndroid.PERMISSIONS.CAMERA] === PermissionsAndroid.RESULTS.GRANTED &&
+                (granted[PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES] === PermissionsAndroid.RESULTS.GRANTED ||
+                granted[PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE] ===
+                PermissionsAndroid.RESULTS.GRANTED)
+            ) {
+                return true;
+            } else {
+                Alert.alert(
+                    'Permissions Denied',
+                    'Camera and storage permissions are required to use this feature.'
+                );
+                return false;
+            }
         } catch (err) {
             console.warn(err);
             return false;
