@@ -132,16 +132,33 @@ const HomeScreen = ({ navigation, route }: { navigation: any, route: any }) => {
     setSelectedImageUri(null); // Reset after use
   };
 
+  const handleDeletePlant = (id: string) => {
+    Alert.alert("Delete Plant", "Are you sure you want to delete this plant?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: () => setPlantHistory(prevHistory => prevHistory.filter(item => item.id !== id)),
+      },
+    ]);
+  };
+
   const renderItem = ({ item }: { item: any }) => (
-    // ... (same as before) ...
     <View style={styles.listItem}>
       <View style={[styles.imageContainer, { width: imageSize, height: imageSize }]}>
         <Image source={{ uri: item.imageUri }} style={styles.listItemImage} resizeMode="cover" />
       </View>
+
+      {/* Text Container -  BEFORE the delete button */}
       <View style={styles.textContainer}>
         <Text style={styles.scientificName}>{item.scientificName}</Text>
         <Text style={styles.commonName}>Common Name: {item.commonName}</Text>
       </View>
+
+        {/* Delete Button - Moved AFTER the text container*/}
+      <TouchableOpacity style={styles.deleteButton} onPress={() => handleDeletePlant(item.id)}>
+        <Icon name="trash" size={20} color="#ff0000" />
+      </TouchableOpacity>
     </View>
   );
 
@@ -271,6 +288,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
     alignItems: 'center',
+    position: 'relative', // Add relative positioning to the parent
   },
   listItemImage: {
      flex: 1,
@@ -315,6 +333,13 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
     width: '90%', // Set a width for the modal
+  },
+  deleteButton: { // Style for the delete button
+    padding: 10,
+    position: 'absolute', // Position absolutely
+    right: 5,          //  from the right edge
+    top: '50%',      //  vertically
+    transform: [{ translateY: -10 }], //  vertically
   },
   modalTitle: {
     fontSize: 20,
