@@ -1,4 +1,3 @@
-// SettingsScreen.tsx
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -6,6 +5,7 @@ import {
   TextInput,
   TouchableOpacity,
   Alert,
+  Image,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -43,33 +43,39 @@ const SettingsScreen: React.FC<Props> = ({ navigation, route }) => {
 
   return (
     <View style={stylesSettings.outerContainer}>
-    <View style={stylesApp.header}>
-      <Text style={stylesApp.headerText}>Pl@ntNet API Key</Text>
-      <TouchableOpacity style={stylesApp.backButton} onPress={handleBackPress}>
-        <Icon name="angle-left" size={28} color="#fff" />
-      </TouchableOpacity>
-    </View>
-
-    <View style={stylesSettings.container}>
-      <TextInput
-        style={stylesSettings.input}
-        placeholder="Enter your API key"
-        value={apiKey}
-        onChangeText={setApiKey}
-        secureTextEntry={false}
-      />
-      <View style={stylesSettings.buttonContainer}>
-        <TouchableOpacity style={[stylesApp.button, stylesApp.buttonSave]} onPress={handleSave}>
-          <Text style={stylesApp.textStyle}>Save</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[stylesApp.button, stylesApp.buttonCancel]}
-          onPress={() => navigation.goBack()}
-        >
-          <Text style={stylesApp.textStyle}>Cancel</Text>
+      <View style={stylesApp.header}>
+        <Text style={stylesApp.headerText}>Pl@ntNet API Key</Text>
+        <TouchableOpacity style={stylesApp.backButton} onPress={handleBackPress}>
+          <Icon name="angle-left" size={28} color="#fff" />
         </TouchableOpacity>
       </View>
-    </View>
+
+      <View style={stylesSettings.container}>
+        <TextInput
+          style={stylesSettings.input}
+          placeholder="Enter your API key"
+          value={apiKey}
+          onChangeText={setApiKey}
+          secureTextEntry={false}
+        />
+        <View style={stylesSettings.buttonContainer}>
+          <TouchableOpacity style={[stylesApp.button, stylesApp.buttonSave]} onPress={handleSave}>
+            <Text style={stylesApp.textStyle}>Save</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[stylesApp.button, stylesApp.buttonCancel]}
+            onPress={() => navigation.goBack()}
+          >
+            <Text style={stylesApp.textStyle}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+        <Image 
+          source={require('./components/powered-by-plantnet-light.png')}
+          style={stylesSettings.image}
+          resizeMode="contain"
+        />
+        <Text style={stylesSettings.info}>The image-based plant species identification service used, is based on the Pl@ntNet recognition API, regularly updated and accessible through the site https://my.plantnet.org/</Text>
+      </View>
   </View>
   );
 };

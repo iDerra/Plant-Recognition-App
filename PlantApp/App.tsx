@@ -1,45 +1,41 @@
-// App.tsx
 import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
-  Button,
   Image,
   Alert,
   TouchableOpacity,
   FlatList,
   Dimensions,
-  Modal, // Import Modal
+  Modal,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { takePictureAndGetUri, pickImageFromGallery, resizeImage } from './src/utils/camera';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+
+import { takePictureAndGetUri, pickImageFromGallery, resizeImage } from './src/utils/camera';
 import SettingsScreen from './src/SettingsScreen';
 import { identifyPlant } from './src/utils/plantnetApi';
 import FavoritesScreen from './src/FavoritesScreen';
-import LoadingDots from './src/components/LoadingDots'; // Import the component
-
-
+import LoadingDots from './src/components/LoadingDots'; 
 import { stylesApp } from './src/styles/AppStyles';
+import { confirmAndRemovePlant, toggleFavorite } from './src/utils/plantUtils';
 
 const HomeScreen = ({ navigation, route }: { navigation: any, route: any }) => {
   const [savedApiKey, setSavedApiKey] = useState('');
   const [plantHistory, setPlantHistory] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [modalVisible, setModalVisible] = useState(false); // For showing results
+  const [modalVisible, setModalVisible] = useState(false);
   const [selectedImageUri, setSelectedImageUri] = useState<string | null>(null);
-  const [identificationResults, setIdentificationResults] = useState<any[]>([]); // Store results
-  const [fullScreenImageUri, setFullScreenImageUri] = useState<string | null>(null); // NEW: For full-screen image
-  const [fullScreenModalVisible, setFullScreenModalVisible] = useState(false); // NEW: For full-screen modal
+  const [identificationResults, setIdentificationResults] = useState<any[]>([]);
+  const [fullScreenImageUri, setFullScreenImageUri] = useState<string | null>(null);
+  const [fullScreenModalVisible, setFullScreenModalVisible] = useState(false);
   const [favoritePlants, setFavoritePlants] = useState<any[]>([]);
-
 
   const screenWidth = Dimensions.get('window').width;
   const imageSize = screenWidth * 0.15;
   const resultImageSize = screenWidth / 4;
-
 
   useEffect(() => {
       const loadData = async () => {
@@ -62,9 +58,14 @@ const HomeScreen = ({ navigation, route }: { navigation: any, route: any }) => {
       }
     };
     loadData();
-      if (route.params?.apiKey) {
-            setSavedApiKey(route.params.apiKey);
-        }
+
+    const unsubscribe = navigation.addListener('focus', () => {
+      loadData();
+    });
+
+    if (route.params?.apiKey) {
+          setSavedApiKey(route.params.apiKey);
+    }
 
   }, [route.params?.apiKey, navigation]);
 
@@ -83,7 +84,6 @@ const HomeScreen = ({ navigation, route }: { navigation: any, route: any }) => {
   }, [plantHistory]);
 
   useEffect(() => {
-    // Save favorites whenever favoritePlants changes
     const saveFavorites = async () => {
       try {
         await AsyncStorage.setItem('favoritePlants', JSON.stringify(favoritePlants));
@@ -162,14 +162,7 @@ const HomeScreen = ({ navigation, route }: { navigation: any, route: any }) => {
   };
 
   const handleDeletePlant = (id: string) => {
-    Alert.alert("Delete Plant", "Are you sure you want to delete this plant?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Delete",
-        style: "destructive",
-        onPress: () => setPlantHistory(prevHistory => prevHistory.filter(item => item.id !== id)),
-      },
-    ]);
+    confirmAndRemovePlant(id, setPlantHistory, setFavoritePlants);
   };
 
   const handleImagePress = (uri: string) => {
@@ -177,20 +170,11 @@ const HomeScreen = ({ navigation, route }: { navigation: any, route: any }) => {
     setFullScreenModalVisible(true);
   };
 
-  const handleToggleFavorite = (plant: any) => {
-    const isCurrentlyFavorite = favoritePlants.some(favPlant => favPlant.id === plant.id);
-
-    if (isCurrentlyFavorite) {
-      // Remove from favorites
-      setFavoritePlants(prevFavorites => prevFavorites.filter(favPlant => favPlant.id !== plant.id));
-    } else {
-      // Add to favorites
-      setFavoritePlants(prevFavorites => [...prevFavorites, plant]);
-    }
+  const handleToggleFavorite = async (plant: any) => {  
+    toggleFavorite(plant, setFavoritePlants);
   };
 
   const renderItem = ({ item }: { item: any }) => {
-    // Determine if the current plant is a favorite
     const isFavorite = favoritePlants.some(favPlant => favPlant.id === item.id);
 
     return (
@@ -206,7 +190,6 @@ const HomeScreen = ({ navigation, route }: { navigation: any, route: any }) => {
           <Text style={stylesApp.commonName}>Common Name: {item.commonName}</Text>
         </View>
 
-        {/* Favorite Button */}
         <TouchableOpacity
           style={stylesApp.favoriteButton}
           onPress={() => handleToggleFavorite(item)}

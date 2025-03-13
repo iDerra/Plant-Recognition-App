@@ -1,8 +1,6 @@
-// utils/plantnetApi.ts
 import axios from 'axios';
 import { Buffer } from 'buffer';
 
-// Function to simulate fs.createReadStream for React Native
 const createReadStream = (uri: string): Promise<Buffer> => {
   return new Promise((resolve, reject) => {
     const fileReader = new FileReader();

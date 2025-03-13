@@ -98,7 +98,7 @@ export const stylesApp = StyleSheet.create({
         borderBottomWidth: 1,
         borderBottomColor: '#ccc',
         alignItems: 'center',
-        position: 'relative', // Add relative positioning to the parent
+        position: 'relative',
     },
     listItemImage: {
         flex: 1,
@@ -125,19 +125,19 @@ export const stylesApp = StyleSheet.create({
         marginTop: 20,
             fontSize:16
     },
-    deleteButton: { // Style for the delete button
+    deleteButton: {
         padding: 10,
-        position: 'absolute', // Position absolutely
-        right: 5,          //  from the right edge
-        top: '50%',      //  vertically
-        transform: [{ translateY: -15 }], //  vertically
+        position: 'absolute',
+        right: 5,
+        top: '50%',
+        transform: [{ translateY: -15 }],
     },
-    favoriteButton: {  // NEW: Style for favorite button
+    favoriteButton: {
         padding: 10,
-        position: 'absolute', // Position absolutely
-        right: 35,          //  from the right edge
-        top: '50%',      //  vertically
-        transform: [{ translateY: -15 }], //  vertically
+        position: 'absolute',
+        right: 35,
+        top: '50%',
+        transform: [{ translateY: -15 }],
     },
     centeredView: {
         flex: 1,
@@ -159,7 +159,7 @@ export const stylesApp = StyleSheet.create({
         shadowOpacity: 0.25,
         shadowRadius: 4,
         elevation: 5,
-        width: '90%', // Set a width for the modal
+        width: '90%',
     },
     modalTitle: {
         fontSize: 20,
@@ -169,7 +169,7 @@ export const stylesApp = StyleSheet.create({
     modalItem: {
         marginBottom: 10,
         width: '100%',
-        alignItems: 'center', // Center items horizontally
+        alignItems: 'center',
     },
     modalTextContainer: {
         width: "100%",
@@ -194,13 +194,13 @@ export const stylesApp = StyleSheet.create({
         width: undefined,
         height: undefined,
     },
-    fullScreenContainer: { // NEW: Container for full-screen image
+    fullScreenContainer: {
         flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent black background
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
         justifyContent: 'center',
         alignItems: 'center',
     },
-    fullScreenImage: {  // NEW: Style for the full-screen image
+    fullScreenImage: {
         width: '80%',
         height: '80%',
     },

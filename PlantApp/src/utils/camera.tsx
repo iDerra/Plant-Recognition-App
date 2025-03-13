@@ -38,7 +38,7 @@ export const takePictureAndGetUri = async (): Promise<string | null> => {
 };
 
 
-export const pickImageFromGallery = async (): Promise<string | null> => { //No changes
+export const pickImageFromGallery = async (): Promise<string | null> => {
     const hasPermission = await requestCameraPermission();
     if (!hasPermission) {
         return null;

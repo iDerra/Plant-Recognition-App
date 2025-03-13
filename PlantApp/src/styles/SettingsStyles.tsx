@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native'
+import { Image, StyleSheet } from 'react-native'
 
 export const stylesSettings = StyleSheet.create({
     outerContainer: {
@@ -26,5 +26,15 @@ export const stylesSettings = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-around',
         width: '100%',
+    },
+    info: {
+        fontSize: 9,
+        width: '80%',
+        position: 'absolute',
+        top: 600,
+    },
+    image: {
+        marginTop: 300,
+        width: '80%',
     },
 });
