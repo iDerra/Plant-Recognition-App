@@ -5,7 +5,6 @@ import {
   Text,
   Button,
   Image,
-  StyleSheet,
   Alert,
   TouchableOpacity,
   FlatList,
@@ -20,6 +19,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import SettingsScreen from './src/SettingsScreen';
 import { identifyPlant } from './src/utils/plantnetApi';
 
+import { stylesApp } from './src/styles/AppStyles';
 
 const HomeScreen = ({ navigation, route }: { navigation: any, route: any }) => {
   const [savedApiKey, setSavedApiKey] = useState('');
@@ -28,6 +28,9 @@ const HomeScreen = ({ navigation, route }: { navigation: any, route: any }) => {
   const [modalVisible, setModalVisible] = useState(false); // For showing results
   const [selectedImageUri, setSelectedImageUri] = useState<string | null>(null);
   const [identificationResults, setIdentificationResults] = useState<any[]>([]); // Store results
+  const [fullScreenImageUri, setFullScreenImageUri] = useState<string | null>(null); // NEW: For full-screen image
+  const [fullScreenModalVisible, setFullScreenModalVisible] = useState(false); // NEW: For full-screen modal
+
 
   const screenWidth = Dimensions.get('window').width;
   const imageSize = screenWidth * 0.15;
@@ -35,7 +38,7 @@ const HomeScreen = ({ navigation, route }: { navigation: any, route: any }) => {
 
 
   useEffect(() => {
-       const loadData = async () => {
+      const loadData = async () => {
       try {
         const storedApiKey = await AsyncStorage.getItem('plantnetApiKey');
         if (storedApiKey !== null) {
@@ -66,7 +69,7 @@ const HomeScreen = ({ navigation, route }: { navigation: any, route: any }) => {
         Alert.alert('Error', 'Failed to save plant history.');
       }
     };
-     if(plantHistory.length > 0){
+    if(plantHistory.length > 0){
         saveData();
     }
   }, [plantHistory]);
@@ -90,12 +93,12 @@ const HomeScreen = ({ navigation, route }: { navigation: any, route: any }) => {
       const uri = await captureFunction();
       if (uri) {
         const resizedImageUri = await resizeImage(uri);
-        setSelectedImageUri(resizedImageUri); // Store resized image URI
+        setSelectedImageUri(resizedImageUri);
 
         if (savedApiKey) {
           const data = await identifyPlant(resizedImageUri, savedApiKey);
           if (data && data.results && data.results.length > 0) {
-            // Store the results and show the modal
+            
             setIdentificationResults(data.results);
             setModalVisible(true);
           } else {
@@ -113,23 +116,22 @@ const HomeScreen = ({ navigation, route }: { navigation: any, route: any }) => {
     }
   };
 
-  // NEW: Function to handle selection from the modal
   const handleResultSelection = (selectedPlant: any) => {
     if (selectedImageUri) {
       setPlantHistory(prevHistory => [
           {
               id: Date.now().toString(),
-              imageUri: selectedImageUri, //Keep the resized image
+              imageUri: selectedImageUri,
               scientificName: selectedPlant.species.scientificNameWithoutAuthor,
               commonName: selectedPlant.species.commonNames ? selectedPlant.species.commonNames[0] : 'N/A',
-              bestMatch: selectedPlant.species.scientificNameWithoutAuthor,  //Use scientific name
+              bestMatch: selectedPlant.species.scientificNameWithoutAuthor,
           },
           ...prevHistory.slice(0, 29),
       ]);
     }
     setModalVisible(false);
     setIdentificationResults([]);
-    setSelectedImageUri(null); // Reset after use
+    setSelectedImageUri(null);
   };
 
   const handleDeletePlant = (id: string) => {
@@ -143,50 +145,57 @@ const HomeScreen = ({ navigation, route }: { navigation: any, route: any }) => {
     ]);
   };
 
+  const handleImagePress = (uri: string) => {
+    setFullScreenImageUri(uri);
+    setFullScreenModalVisible(true);
+  };
+
   const renderItem = ({ item }: { item: any }) => (
-    <View style={styles.listItem}>
-      <View style={[styles.imageContainer, { width: imageSize, height: imageSize }]}>
-        <Image source={{ uri: item.imageUri }} style={styles.listItemImage} resizeMode="cover" />
+    <View style={stylesApp.listItem}>
+      <TouchableOpacity onPress={() => handleImagePress(item.imageUri)}>
+        <View style={[stylesApp.imageContainer, { width: imageSize, height: imageSize }]}>
+          <Image source={{ uri: item.imageUri }} style={stylesApp.listItemImage} resizeMode="cover" />
+        </View>
+      </TouchableOpacity>
+
+      <View style={stylesApp.textContainer}>
+        <Text style={stylesApp.scientificName}>{item.scientificName}</Text>
+        <Text style={stylesApp.commonName}>Common Name: {item.commonName}</Text>
       </View>
 
-      {/* Text Container -  BEFORE the delete button */}
-      <View style={styles.textContainer}>
-        <Text style={styles.scientificName}>{item.scientificName}</Text>
-        <Text style={styles.commonName}>Common Name: {item.commonName}</Text>
-      </View>
-
-        {/* Delete Button - Moved AFTER the text container*/}
-      <TouchableOpacity style={styles.deleteButton} onPress={() => handleDeletePlant(item.id)}>
+      <TouchableOpacity style={stylesApp.deleteButton} onPress={() => handleDeletePlant(item.id)}>
         <Icon name="trash" size={20} color="#ff0000" />
       </TouchableOpacity>
     </View>
   );
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerText}>Plant AI</Text>
-        <TouchableOpacity style={styles.settingsButton} onPress={handleSettingsPress}>
+    <View style={stylesApp.container}>
+      <View style={stylesApp.header}>
+        <Text style={stylesApp.headerText}>Plant AI</Text>
+        <TouchableOpacity style={stylesApp.settingsButton} onPress={handleSettingsPress}>
           <Icon name="cog" size={24} color="#fff" />
         </TouchableOpacity>
       </View>
 
-      <View style={styles.buttonContainer}>
-        <Button title="Take Picture" onPress={handleTakePicture} disabled={isLoading} />
-        <Button title="Choose from Gallery" onPress={handleChooseFromGallery} disabled={isLoading} />
+      <View style={stylesApp.buttonContainer}>
+        <TouchableOpacity style={stylesApp.tinyButton} onPress={handleTakePicture} disabled={isLoading}>
+          <Icon name="camera" size={24} color="#ddd" />
+        </TouchableOpacity>
+        <TouchableOpacity style={stylesApp.tinyButton} onPress={handleChooseFromGallery} disabled={isLoading}>
+          <Icon name="image" size={24} color="#ddd" />
+        </TouchableOpacity>
       </View>
 
       {isLoading && <Text>Identifying plant...</Text>}
 
-      {/* Plant History List */}
       <FlatList
         data={plantHistory.slice(0, 10)}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
-        ListEmptyComponent={<Text style={styles.emptyListText}>No plants identified yet.</Text>}
+        ListEmptyComponent={<Text style={stylesApp.emptyListText}>No plants identified yet.</Text>}
       />
 
-      {/* Modal for displaying identification results */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -196,27 +205,27 @@ const HomeScreen = ({ navigation, route }: { navigation: any, route: any }) => {
           setIdentificationResults([]);
         }}
       >
-        <View style={styles.centeredView}>
-          <View style={styles.modalView}>
-            <Text style={styles.modalTitle}>Select the Correct Plant:</Text>
+        <View style={stylesApp.centeredView}>
+          <View style={stylesApp.modalView}>
+            <Text style={stylesApp.modalTitle}>Select the Correct Plant:</Text>
             {identificationResults.map((result, index) => (
                 <TouchableOpacity
                     key={index}
-                    style={styles.modalItem}
-                    onPress={() => handleResultSelection(result)} //Important!
+                    style={stylesApp.modalItem}
+                    onPress={() => handleResultSelection(result)}
                 >
                     {result.images && result.images.length > 0 && (
-                        <View style={[styles.resultImageContainer, { width: resultImageSize, height: resultImageSize }]}>
+                        <View style={[stylesApp.resultImageContainer, { width: resultImageSize, height: resultImageSize }]}>
                         <Image
                         source={{ uri: result.images[0].url.m }}
-                        style={styles.resultImage}
+                        style={stylesApp.resultImage}
                         resizeMode="cover"
                         />
                         </View>
                     )}
-                    <View style={styles.modalTextContainer}>
-                        <Text style={styles.modalScientificName}>{result.species.scientificNameWithoutAuthor}</Text>
-                        <Text style={styles.modalCommonName}>
+                    <View style={stylesApp.modalTextContainer}>
+                        <Text style={stylesApp.modalScientificName}>{result.species.scientificNameWithoutAuthor}</Text>
+                        <Text style={stylesApp.modalCommonName}>
                             Common Name: {result.species.commonNames ? result.species.commonNames[0] : 'N/A'}
                         </Text>
                         <Text>Score: {result.score.toFixed(2)}</Text>
@@ -224,8 +233,32 @@ const HomeScreen = ({ navigation, route }: { navigation: any, route: any }) => {
 
                 </TouchableOpacity>
             ))}
-            <Button title="Cancel" onPress={() => {setModalVisible(!modalVisible); setIdentificationResults([])}} />
+            <TouchableOpacity style={[stylesApp.button, stylesApp.buttonCancel]} onPress={() => {setModalVisible(!modalVisible); setIdentificationResults([])}}>
+              <Text style={stylesApp.textStyle}>Cancel</Text>
+            </TouchableOpacity>
           </View>
+        </View>
+      </Modal>
+
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={fullScreenModalVisible}
+        onRequestClose={() => {
+          setFullScreenModalVisible(false);
+        }}
+      >
+        <View style={stylesApp.fullScreenContainer}>
+          <Image
+            source={{ uri: fullScreenImageUri }}
+            style={stylesApp.fullScreenImage}
+            resizeMode="contain"
+          />
+          <TouchableOpacity
+            onPress={() => setFullScreenModalVisible(false)}
+          >
+            <Icon name="times" size={30} color="#fff" />
+          </TouchableOpacity>
         </View>
       </Modal>
     </View>
@@ -242,138 +275,5 @@ const App = () => (
     </Stack.Navigator>
   </NavigationContainer>
 );
-
-const styles = StyleSheet.create({
- // ... (other styles) ...
-  container: {
-    flex: 1,
-    backgroundColor: '#f0f0f0',
-  },
-  header: {
-    backgroundColor: '#4CAF50',
-    paddingTop: 50,
-    padding: 10,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerText: {
-    color: '#fff',
-    fontSize: 20,
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  settingsButton: {
-    padding: 5,
-    paddingTop: 45,
-    position: 'absolute',
-    right: 10,
-  },
-  buttonContainer: {
-    margin: 20,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-    imageContainer: {
-    overflow: 'hidden',
-    alignSelf: 'center',
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 5,
-  },
-  listItem: {
-    flexDirection: 'row',
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-    alignItems: 'center',
-    position: 'relative', // Add relative positioning to the parent
-  },
-  listItemImage: {
-     flex: 1,
-    width: undefined,
-    height: undefined,
-  },
-  textContainer: {
-    marginLeft: 10,
-    flex: 1,
-  },
-  scientificName: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  commonName: {
-    fontSize: 14,
-  },
-    emptyListText:{
-     textAlign: 'center',
-     marginTop: 20,
-        fontSize:16
-  },
-  // New styles for the modal
-  centeredView: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 22,
-  },
-  modalView: {
-    margin: 20,
-    backgroundColor: 'white',
-    borderRadius: 20,
-    padding: 35,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-    width: '90%', // Set a width for the modal
-  },
-  deleteButton: { // Style for the delete button
-    padding: 10,
-    position: 'absolute', // Position absolutely
-    right: 5,          //  from the right edge
-    top: '50%',      //  vertically
-    transform: [{ translateY: -10 }], //  vertically
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 15,
-  },
-  modalItem: {
-    marginBottom: 10,
-    width: '100%',
-    alignItems: 'center', // Center items horizontally
-  },
-  modalTextContainer: {
-      width: "100%",
-      alignItems: "center"
-  },
-  modalScientificName: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  modalCommonName: {
-    fontSize: 14,
-  },
-  resultImageContainer: {
-    marginTop: 5,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 5,
-  },
-  resultImage: {
-    flex: 1,
-    width: undefined,
-    height: undefined,
-  },
-});
 
 export default App;

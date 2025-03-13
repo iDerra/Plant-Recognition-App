@@ -33,7 +33,7 @@ const createReadStream = (uri: string): Promise<Buffer> => {
 export const identifyPlant = async (imageUri: string, apiKey: string, organ: string = 'leaf') => {
   const apiUrl = 'https://my-api.plantnet.org/v2/identify/all';
   const maxResults = 3;
-  const includeRelatedImages = true; // Now a simple boolean
+  const includeRelatedImages = true;
 
   const formData = new FormData();
   const imageBuffer = await createReadStream(imageUri);
@@ -44,13 +44,12 @@ export const identifyPlant = async (imageUri: string, apiKey: string, organ: str
     type: 'image/jpeg',
     buffer: imageBuffer,
   } as any);
-  formData.append('organs', organ); //Only one organ, as we are sending one image
+  formData.append('organs', organ);
 
-  // Construct the URL *with all parameters except image and organ*:
   const urlWithParams = `${apiUrl}?api-key=${apiKey}&nb-results=${maxResults}&include-related-images=${includeRelatedImages}`;
 
   try {
-    const response = await axios.post(urlWithParams, formData, { // Use the URL with params
+    const response = await axios.post(urlWithParams, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -66,7 +65,7 @@ export const identifyPlant = async (imageUri: string, apiKey: string, organ: str
     console.error("Error identifying plant:", error);
     if (axios.isAxiosError(error)) {
       console.error("Axios error details:", error.response?.data || error.message);
-      console.log(error.config.url) // Log the full URL being used
+      console.log(error.config.url)
     }
     throw error;
   }

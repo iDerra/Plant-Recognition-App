@@ -5,8 +5,8 @@ export const requestCameraPermission = async () => {
         try {
             const granted = await PermissionsAndroid.requestMultiple([
                 PermissionsAndroid.PERMISSIONS.CAMERA,
-                PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES, //For Android 13+, use READ_MEDIA_IMAGES
-                PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE, //For Android < 13
+                PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES, 
+                PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
             ]);
 
             if (
