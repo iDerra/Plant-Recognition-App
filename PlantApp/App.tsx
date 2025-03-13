@@ -1,4 +1,4 @@
-// App.tsx
+// App.tsx (or HomeScreen.tsx)
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   Platform,
   ScrollView,
+  Dimensions,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { takePictureAndGetUri, pickImageFromGallery } from './src/utils/camera';
@@ -19,57 +20,40 @@ import { createStackNavigator } from '@react-navigation/stack';
 import SettingsScreen from './src/SettingsScreen';
 import { identifyPlant } from './src/utils/plantNetAPI';
 
-
 const HomeScreen = ({ navigation, route }: { navigation: any, route: any }) => {
   const [imageSource, setImageSource] = useState<string | null>(null);
   const [savedApiKey, setSavedApiKey] = useState('');
   const [plantData, setPlantData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  const screenWidth = Dimensions.get('window').width;
+  const imageSize = screenWidth * 0.8;
+  const resultImageSize = screenWidth / 4; // Smaller images for results
 
   useEffect(() => {
-    const loadApiKey = async () => {
-      try {
-        const storedApiKey = await AsyncStorage.getItem('plantnetApiKey');
-        if (storedApiKey !== null) {
-          setSavedApiKey(storedApiKey);
+        const loadApiKey = async () => {
+            try {
+                const storedApiKey = await AsyncStorage.getItem('plantnetApiKey');
+                if (storedApiKey !== null) {
+                    setSavedApiKey(storedApiKey);
+                }
+            } catch (error) {
+                console.error('Error al cargar la clave de API:', error);
+                Alert.alert('Error', 'No se pudo cargar la clave de API.');
+            }
+        };
+
+        loadApiKey();
+
+        if (route.params?.apiKey) {
+            setSavedApiKey(route.params.apiKey);
         }
-      } catch (e) {
-        console.error("Error loading API key:", e);
-        Alert.alert('Error', 'Failed to load API key.');
-      }
-    };
-    loadApiKey();
-    //Added this
-    if (route.params?.apiKey) {
-        setSavedApiKey(route.params.apiKey);
-    }
+    }, [route.params?.apiKey, navigation]);
 
-    const testApiKey = async () => {
-      if (savedApiKey) { //Only if Key exist
-        try {
-          const testUrl = `https://my-api.plantnet.org/v2/identify/all?api-key=${savedApiKey}&organs=leaf`; //Simplified URL for testing
-          const response = await fetch(testUrl);
-          console.log("Test API Response Status:", response.status);
-          const data = await response.json(); //Try get the data
-          console.log("Test API Response Data:", data);
-        } catch (error) {
-          console.error("Test API Error:", error);
-        }
-    }
-    };
-
-  testApiKey(); // Call the test function
-
-    if (route.params?.apiKey) {
-      setSavedApiKey(route.params.apiKey);
-    }
-  }, [route.params?.apiKey]); //  Key change:  Listen for changes to route.params?.apiKey
 
   const handleSettingsPress = () => {
     navigation.navigate('Settings', { savedApiKey: savedApiKey });
   };
-
 
   const handleTakePicture = async () => {
     setIsLoading(true);
@@ -95,9 +79,9 @@ const HomeScreen = ({ navigation, route }: { navigation: any, route: any }) => {
 
   const handleChooseFromGallery = async () => {
     setIsLoading(true);
-    setPlantData(null); // Clear previous results
+    setPlantData(null);
     try {
-      const uri = await pickImageFromGallery(); // Call pickImageFromGallery
+      const uri = await pickImageFromGallery();
       if (uri) {
         setImageSource(uri);
         if (savedApiKey) {
@@ -108,8 +92,8 @@ const HomeScreen = ({ navigation, route }: { navigation: any, route: any }) => {
         }
       }
     } catch (error) {
-      console.error("Error picking image from gallery:", error);
-      Alert.alert("Error", "Failed to pick image from gallery.");
+      console.error("Error picking image or identifying plant:", error);
+      Alert.alert("Error", "Failed to pick image or identify plant.");
     } finally {
       setIsLoading(false);
     }
@@ -126,33 +110,43 @@ const HomeScreen = ({ navigation, route }: { navigation: any, route: any }) => {
         </View>
 
         <View style={styles.buttonContainer}>
-          <Button
-            title="Take Picture"
-            onPress={handleTakePicture}
-            disabled={isLoading}
-          />
+          <Button title="Take Picture" onPress={handleTakePicture} disabled={isLoading} />
+          <Button title="Choose from Gallery" onPress={handleChooseFromGallery} disabled={isLoading} />
         </View>
-        <Button title="Choose from Gallery" onPress={handleChooseFromGallery} disabled={isLoading} />
+
         {imageSource && (
-          <Image
-            source={{ uri: imageSource }}
-            style={styles.image}
-            resizeMode="contain"
-          />
+          <View style={[styles.imageContainer, { width: imageSize, height: imageSize }]}>
+            <Image
+              source={{ uri: imageSource }}
+              style={styles.image}
+              resizeMode="cover"
+            />
+          </View>
         )}
 
         {isLoading && <Text>Identifying plant...</Text>}
 
+        {/* Display Results WITH Images */}
         {plantData && (
           <View style={styles.resultsContainer}>
             <Text style={styles.resultsTitle}>Identification Results:</Text>
             <Text>Best Match: {plantData.bestMatch}</Text>
-             {plantData.results.map((result: any, index: number) => (
-                <View key={index} style={styles.resultItem}>
-                  <Text>Species: {result.species.scientificNameWithoutAuthor}</Text>
-                  <Text>Score: {result.score.toFixed(2)}</Text>
-                </View>
-              ))}
+            {plantData.results.map((result: any, index: number) => (
+              <View key={index} style={styles.resultItem}>
+                <Text>Species: {result.species.scientificNameWithoutAuthor}</Text>
+                <Text>Score: {result.score.toFixed(2)}</Text>
+                {/* Display Result Image */}
+                {result.images && result.images.length > 0 && (
+                  <View style={[styles.resultImageContainer, { width: resultImageSize, height: resultImageSize }]}>
+                    <Image
+                      source={{ uri: result.images[0].url.m }} // Use medium size ('m')
+                      style={styles.resultImage}
+                      resizeMode="cover"
+                    />
+                  </View>
+                )}
+              </View>
+            ))}
           </View>
         )}
       </View>
@@ -162,27 +156,14 @@ const HomeScreen = ({ navigation, route }: { navigation: any, route: any }) => {
 
 const Stack = createStackNavigator();
 
-const App = () => {
-
-    const handleSaveApiKey = (apiKey: string) => { // Define onSave here
-        setSavedApiKey(apiKey);
-      };
-
-  return (
-    <NavigationContainer>
-      <Stack.Navigator>
-        <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
-        {/* Pass onSave to SettingsScreen */}
-        <Stack.Screen
-          name="Settings"
-          component={SettingsScreen}
-          options={{ headerShown: false }}
-          initialParams={{ onSave: handleSaveApiKey }}
-        />
-      </Stack.Navigator>
-    </NavigationContainer>
-  );
-};
+const App = () => (
+  <NavigationContainer>
+    <Stack.Navigator>
+      <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="Settings" component={SettingsScreen} options={{ headerShown: false }} />
+    </Stack.Navigator>
+  </NavigationContainer>
+);
 
 const styles = StyleSheet.create({
   scrollContainer: {
@@ -214,12 +195,21 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     margin: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
   },
-  image: {
-    width: '80%',
-    height: 300,
+  imageContainer: {
+    overflow: 'hidden',
     alignSelf: 'center',
     marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 5,
+  },
+  image: {
+    flex: 1,
+    width: undefined,
+    height: undefined,
   },
   resultsContainer: {
     margin: 20,
@@ -232,9 +222,21 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 10,
   },
-    resultItem:{
-      marginBottom:15,
-    },
+  resultItem: {
+    marginBottom: 15,
+  },
+  resultImageContainer: { // Style for the result image container
+    marginTop: 5,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 5,
+  },
+  resultImage: { // Style for the result image
+    flex: 1,
+    width: undefined, // Important
+    height: undefined, // Important
+  },
 });
 
 export default App;
