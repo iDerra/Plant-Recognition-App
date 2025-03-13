@@ -72,6 +72,10 @@ def enableProguardInReleaseBuilds = false
  */
 def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 
+def getPropertyOrDefault(String name, String defaultValue) {
+    return project.hasProperty(name) ? project.property(name) : defaultValue
+}
+
 android {
     ndkVersion rootProject.ext.ndkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
@@ -92,6 +96,13 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+
+        release {
+            storeFile file(getPropertyOrDefault("APP_RELEASE_STORE_FILE", ""))
+            storePassword getPropertyOrDefault("APP_RELEASE_STORE_PASSWORD", "")
+            keyAlias getPropertyOrDefault("APP_RELEASE_KEY_ALIAS", "")
+            keyPassword getPropertyOrDefault("APP_RELEASE_KEY_PASSWORD", "")
+        }
     }
     buildTypes {
         debug {
@@ -100,9 +111,8 @@ android {
         release {
             // Caution! In production, you need to generate your own keystore file.
             // see https://reactnative.dev/docs/signed-apk-android.
-            signingConfig signingConfigs.debug
-            minifyEnabled enableProguardInReleaseBuilds
-            proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+            signingConfig signingConfigs.release
+            minifyEnabled false
         }
     }
     apply from: "../../node_modules/react-native-vector-icons/fonts.gradle"

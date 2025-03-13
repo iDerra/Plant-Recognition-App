@@ -1,8 +1,10 @@
 __tests__
 PlantApp/android/*
+!PlantApp/android/app/src/res/
 !PlantApp/android/app/build.gradle
 .bundle
 ios
 node_modules
 Gemfile
 package-lock.json
+.DS_Store

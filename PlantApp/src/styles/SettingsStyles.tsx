@@ -5,12 +5,6 @@ export const stylesSettings = StyleSheet.create({
         flex: 1,
         backgroundColor: '#fff',
     },
-    backButton: {
-        padding: 5,
-        paddingTop: 45,
-        position: 'absolute',
-        left: 10,
-    },
     container: {
         marginTop: 25,
         alignItems: 'center',

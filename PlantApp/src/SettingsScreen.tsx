@@ -45,7 +45,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation, route }) => {
     <View style={stylesSettings.outerContainer}>
     <View style={stylesApp.header}>
       <Text style={stylesApp.headerText}>Pl@ntNet API Key</Text>
-      <TouchableOpacity style={stylesSettings.backButton} onPress={handleBackPress}>
+      <TouchableOpacity style={stylesApp.backButton} onPress={handleBackPress}>
         <Icon name="angle-left" size={28} color="#fff" />
       </TouchableOpacity>
     </View>

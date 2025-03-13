@@ -5,6 +5,7 @@ export const stylesApp = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#f0f0f0',
+        marginBottom: 20,
     },
     header: {
         backgroundColor: '#4CAF50',
@@ -20,11 +21,36 @@ export const stylesApp = StyleSheet.create({
         fontWeight: 'bold',
         textAlign: 'center',
     },
+    favoritesButtonHeader: { 
+        padding: 5,
+        paddingTop: 45,
+        position: 'absolute',
+        left: 10,
+    },
     settingsButton: {
         padding: 5,
         paddingTop: 45,
         position: 'absolute',
         right: 10,
+    },
+    backButton: {
+        padding: 5,
+        paddingTop: 45,
+        position: 'absolute',
+        left: 10,
+    },
+    inputSearch: {
+        alignSelf: 'center',
+        height: 40,
+        borderBottomColor: 'gray',
+        borderBottomWidth: 1,
+        backgroundColor: '#eee',
+        marginVertical: 15,
+        paddingHorizontal: 10,
+        width: '75%',
+        borderRadius: 5,
+        textAlign: 'center',
+        fontSize: 18,
     },
     buttonContainer: {
         margin: 20,
@@ -92,6 +118,7 @@ export const stylesApp = StyleSheet.create({
     commonName: {
         position: 'absolute',
         fontSize: 14,
+        maxWidth: '80%',
     },
     emptyListText:{
         textAlign: 'center',
@@ -103,7 +130,14 @@ export const stylesApp = StyleSheet.create({
         position: 'absolute', // Position absolutely
         right: 5,          //  from the right edge
         top: '50%',      //  vertically
-        transform: [{ translateY: -10 }], //  vertically
+        transform: [{ translateY: -15 }], //  vertically
+    },
+    favoriteButton: {  // NEW: Style for favorite button
+        padding: 10,
+        position: 'absolute', // Position absolutely
+        right: 35,          //  from the right edge
+        top: '50%',      //  vertically
+        transform: [{ translateY: -15 }], //  vertically
     },
     centeredView: {
         flex: 1,

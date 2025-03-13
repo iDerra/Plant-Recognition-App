@@ -13,7 +13,7 @@ export const takePictureAndGetUri = async (): Promise<string | null> => {
     const options: CameraOptions = {
         mediaType: 'photo',
         quality: 0.5,
-        saveToPhotos: true,
+        saveToPhotos: false,
     };
 
     return new Promise((resolve) => {

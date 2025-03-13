@@ -18,6 +18,9 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import SettingsScreen from './src/SettingsScreen';
 import { identifyPlant } from './src/utils/plantnetApi';
+import FavoritesScreen from './src/FavoritesScreen';
+import LoadingDots from './src/components/LoadingDots'; // Import the component
+
 
 import { stylesApp } from './src/styles/AppStyles';
 
@@ -30,6 +33,7 @@ const HomeScreen = ({ navigation, route }: { navigation: any, route: any }) => {
   const [identificationResults, setIdentificationResults] = useState<any[]>([]); // Store results
   const [fullScreenImageUri, setFullScreenImageUri] = useState<string | null>(null); // NEW: For full-screen image
   const [fullScreenModalVisible, setFullScreenModalVisible] = useState(false); // NEW: For full-screen modal
+  const [favoritePlants, setFavoritePlants] = useState<any[]>([]);
 
 
   const screenWidth = Dimensions.get('window').width;
@@ -47,6 +51,10 @@ const HomeScreen = ({ navigation, route }: { navigation: any, route: any }) => {
         const storedHistory = await AsyncStorage.getItem('plantHistory');
         if (storedHistory !== null) {
           setPlantHistory(JSON.parse(storedHistory));
+        }
+        const storedFavorites = await AsyncStorage.getItem('favoritePlants');
+        if (storedFavorites !== null) {
+            setFavoritePlants(JSON.parse(storedFavorites));
         }
       } catch (e) {
         console.error("Error loading data:", e);
@@ -74,6 +82,21 @@ const HomeScreen = ({ navigation, route }: { navigation: any, route: any }) => {
     }
   }, [plantHistory]);
 
+  useEffect(() => {
+    // Save favorites whenever favoritePlants changes
+    const saveFavorites = async () => {
+      try {
+        await AsyncStorage.setItem('favoritePlants', JSON.stringify(favoritePlants));
+      } catch (e) {
+        console.error("Error saving favorites:", e);
+        Alert.alert('Error', 'Failed to save favorites.');
+      }
+    };
+
+    if(favoritePlants.length > 0){
+        saveFavorites();
+    }
+    }, [favoritePlants]);
 
   const handleSettingsPress = () => {
     navigation.navigate('Settings', { savedApiKey: savedApiKey });
@@ -85,6 +108,10 @@ const HomeScreen = ({ navigation, route }: { navigation: any, route: any }) => {
 
   const handleChooseFromGallery = async () => {
     await handleImageCapture(pickImageFromGallery);
+  };
+
+  const handleFavoritesPress = () => {
+    navigation.navigate('Favorites');
   };
 
   const handleImageCapture = async (captureFunction: () => Promise<string | null>) => {
@@ -150,28 +177,56 @@ const HomeScreen = ({ navigation, route }: { navigation: any, route: any }) => {
     setFullScreenModalVisible(true);
   };
 
-  const renderItem = ({ item }: { item: any }) => (
-    <View style={stylesApp.listItem}>
-      <TouchableOpacity onPress={() => handleImagePress(item.imageUri)}>
-        <View style={[stylesApp.imageContainer, { width: imageSize, height: imageSize }]}>
-          <Image source={{ uri: item.imageUri }} style={stylesApp.listItemImage} resizeMode="cover" />
+  const handleToggleFavorite = (plant: any) => {
+    const isCurrentlyFavorite = favoritePlants.some(favPlant => favPlant.id === plant.id);
+
+    if (isCurrentlyFavorite) {
+      // Remove from favorites
+      setFavoritePlants(prevFavorites => prevFavorites.filter(favPlant => favPlant.id !== plant.id));
+    } else {
+      // Add to favorites
+      setFavoritePlants(prevFavorites => [...prevFavorites, plant]);
+    }
+  };
+
+  const renderItem = ({ item }: { item: any }) => {
+    // Determine if the current plant is a favorite
+    const isFavorite = favoritePlants.some(favPlant => favPlant.id === item.id);
+
+    return (
+      <View style={stylesApp.listItem}>
+        <TouchableOpacity onPress={() => handleImagePress(item.imageUri)}>
+          <View style={[stylesApp.imageContainer, { width: imageSize, height: imageSize }]}>
+            <Image source={{ uri: item.imageUri }} style={stylesApp.listItemImage} resizeMode="cover" />
+          </View>
+        </TouchableOpacity>
+
+        <View style={stylesApp.textContainer}>
+          <Text style={stylesApp.scientificName}>{item.scientificName}</Text>
+          <Text style={stylesApp.commonName}>Common Name: {item.commonName}</Text>
         </View>
-      </TouchableOpacity>
 
-      <View style={stylesApp.textContainer}>
-        <Text style={stylesApp.scientificName}>{item.scientificName}</Text>
-        <Text style={stylesApp.commonName}>Common Name: {item.commonName}</Text>
+        {/* Favorite Button */}
+        <TouchableOpacity
+          style={stylesApp.favoriteButton}
+          onPress={() => handleToggleFavorite(item)}
+        >
+          <Icon name="heart" size={20} color={isFavorite ? 'red' : 'black'} solid={isFavorite}/>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={stylesApp.deleteButton} onPress={() => handleDeletePlant(item.id)}>
+          <Icon name="trash" size={20} color="#ff0000" />
+        </TouchableOpacity>
       </View>
-
-      <TouchableOpacity style={stylesApp.deleteButton} onPress={() => handleDeletePlant(item.id)}>
-        <Icon name="trash" size={20} color="#ff0000" />
-      </TouchableOpacity>
-    </View>
-  );
+    );
+  };
 
   return (
     <View style={stylesApp.container}>
       <View style={stylesApp.header}>
+        <TouchableOpacity style={stylesApp.favoritesButtonHeader} onPress={handleFavoritesPress}>
+          <Icon name="heart" size={22} color="#fff" />
+        </TouchableOpacity>
         <Text style={stylesApp.headerText}>Plant AI</Text>
         <TouchableOpacity style={stylesApp.settingsButton} onPress={handleSettingsPress}>
           <Icon name="cog" size={24} color="#fff" />
@@ -187,7 +242,7 @@ const HomeScreen = ({ navigation, route }: { navigation: any, route: any }) => {
         </TouchableOpacity>
       </View>
 
-      {isLoading && <Text>Identifying plant...</Text>}
+      {isLoading && <LoadingDots />}
 
       <FlatList
         data={plantHistory.slice(0, 10)}
@@ -272,6 +327,7 @@ const App = () => (
     <Stack.Navigator>
       <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Settings" component={SettingsScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="Favorites" component={FavoritesScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
   </NavigationContainer>
 );
