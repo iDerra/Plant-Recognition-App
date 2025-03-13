@@ -1,5 +1,9 @@
 import { PermissionsAndroid, Platform, Alert } from 'react-native';
 
+/**
+ * Requests camera and storage permissions on Android.  Returns `true` if granted, `false` otherwise.
+ * For non-Android platforms, it assumes permissions are granted and returns `true`.
+ */
 export const requestCameraPermission = async () => {
     if (Platform.OS === 'android') {
         try {
