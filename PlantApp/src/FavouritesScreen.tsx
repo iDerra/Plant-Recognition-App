@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   TextInput,
   Modal,
-    Alert
+  Alert
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -22,38 +22,38 @@ interface PlantItem {
   imageUri: string;
   scientificName: string;
   commonName: string;
-    bestMatch: string;
+  bestMatch: string;
 }
 
-const FavoritesScreen = ({ navigation }: { navigation: any }) => {
-  const [favoritePlants, setFavoritePlants] = useState<PlantItem[]>([]);
+const FavouritesScreen = ({ navigation }: { navigation: any }) => {
+  const [favouritePlants, setFavouritePlants] = useState<PlantItem[]>([]);
   const [filteredPlants, setFilteredPlants] = useState<PlantItem[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-    const [fullScreenImageUri, setFullScreenImageUri] = useState<string | null>(null);
+  const [fullScreenImageUri, setFullScreenImageUri] = useState<string | null>(null);
   const [fullScreenModalVisible, setFullScreenModalVisible] = useState(false);
 
   const screenWidth = Dimensions.get('window').width;
   const imageSize = screenWidth * 0.15;
 
-  // useEffect hook to load favorite plants from AsyncStorage when the component mounts or regains focus.
+  // useEffect hook to load favourite plants from AsyncStorage when the component mounts or regains focus.
   useEffect(() => {
-    const loadFavorites = async () => {
+    const loadFavourites = async () => {
       try {
-        const storedFavorites = await AsyncStorage.getItem('favoritePlants');
-        if (storedFavorites !== null) {
-          const favorites = JSON.parse(storedFavorites);
-          setFavoritePlants(favorites);
-          setFilteredPlants(favorites);
+        const storedFavourites = await AsyncStorage.getItem('favouritePlants');
+        if (storedFavourites !== null) {
+          const favourites = JSON.parse(storedFavourites);
+          setFavouritePlants(favourites);
+          setFilteredPlants(favourites);
         }
       } catch (error) {
-        console.error("Error loading favorites:", error);
-        Alert.alert('Error', 'Failed to load favorites.');
+        console.error("Error loading favourites:", error);
+        Alert.alert('Error', 'Failed to load favourites.');
       }
     };
 
-    loadFavorites();
+    loadFavourites();
     const unsubscribe = navigation.addListener('focus', () => {
-        loadFavorites();
+        loadFavourites();
     });
     return unsubscribe;
 
@@ -61,12 +61,12 @@ const FavoritesScreen = ({ navigation }: { navigation: any }) => {
 
   // useEffect hook to filter the plants based on the search query.
   useEffect(() => {
-    const filtered = favoritePlants.filter(plant =>
+    const filtered = favouritePlants.filter(plant =>
       plant.scientificName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (plant.commonName && plant.commonName.toLowerCase().includes(searchQuery.toLowerCase()))
     );
     setFilteredPlants(filtered);
-  }, [searchQuery, favoritePlants]);
+  }, [searchQuery, favouritePlants]);
 
   // Function to handle pressing on an image to view it in full screen.
   const handleImagePress = (uri: string) => {
@@ -74,8 +74,8 @@ const FavoritesScreen = ({ navigation }: { navigation: any }) => {
     setFullScreenModalVisible(true);
   };
   
-  const handleDeleteFavorite = (id: string) => {
-    confirmAndRemovePlant(id, undefined, setFavoritePlants);
+  const handleDeleteFavourite = (id: string) => {
+    confirmAndRemovePlant(id, undefined, setFavouritePlants);
   };
 
   // Function to render each item in the FlatList.
@@ -94,13 +94,13 @@ const FavoritesScreen = ({ navigation }: { navigation: any }) => {
         <Text style={stylesApp.commonName}>Common Name: {item.commonName}</Text>
       </View>
 
-      {/* TouchableOpacity to remove the plant from favorites (shows a filled heart). */}
-      <TouchableOpacity style={stylesApp.favoriteButton} onPress={() => handleDeleteFavorite(item.id)}>
+      {/* TouchableOpacity to remove the plant from favourites (shows a filled heart). */}
+      <TouchableOpacity style={stylesApp.favouriteButton} onPress={() => handleDeleteFavourite(item.id)}>
         <Icon name="heart" size={20} color="red" solid />
       </TouchableOpacity>
 
-      {/* TouchableOpacity to delete the plant from favorites (shows a trash icon). */}
-      <TouchableOpacity style={stylesApp.deleteButton} onPress={() => handleDeleteFavorite(item.id)}>
+      {/* TouchableOpacity to delete the plant from favourites (shows a trash icon). */}
+      <TouchableOpacity style={stylesApp.deleteButton} onPress={() => handleDeleteFavourite(item.id)}>
         <Icon name="trash" size={20} color="#ff0000" />
       </TouchableOpacity>
     </View>
@@ -113,23 +113,23 @@ const FavoritesScreen = ({ navigation }: { navigation: any }) => {
         <TouchableOpacity style={stylesApp.backButton} onPress={() => navigation.goBack()}>
           <Icon name="angle-left" size={28} color="#fff" />
         </TouchableOpacity>
-        <Text style={stylesApp.headerText}>Favorite Plants</Text>
+        <Text style={stylesApp.headerText}>Favourite Plants</Text>
       </View>
 
-      {/* TextInput for searching favorite plants. */}
+      {/* TextInput for searching favourite plants. */}
       <TextInput
-        style={stylesApp.inputSearch}
-        placeholder="Search favorites..."
+        style={[stylesApp.inputSearch]}
+        placeholder="Search favourites..."
         value={searchQuery}
         onChangeText={setSearchQuery}
       />
 
-      {/* FlatList to display the (filtered) favorite plants. */}
+      {/* FlatList to display the (filtered) favourite plants. */}
       <FlatList
         data={filteredPlants}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
-        ListEmptyComponent={<Text style={stylesApp.emptyListText}>No favorite plants yet.</Text>}
+        ListEmptyComponent={<Text style={stylesApp.emptyListText}>No favourite plants yet.</Text>}
       />
 
       {/* Modal for displaying the full-screen image. */}
@@ -158,4 +158,4 @@ const FavoritesScreen = ({ navigation }: { navigation: any }) => {
   );
 };
 
-export default FavoritesScreen;
+export default FavouritesScreen;

@@ -21,7 +21,7 @@ export const stylesApp = StyleSheet.create({
         fontWeight: 'bold',
         textAlign: 'center',
     },
-    favoritesButtonHeader: { 
+    favouritesButtonHeader: { 
         padding: 5,
         paddingTop: 45,
         position: 'absolute',
@@ -132,7 +132,7 @@ export const stylesApp = StyleSheet.create({
         top: '50%',
         transform: [{ translateY: -15 }],
     },
-    favoriteButton: {
+    favouriteButton: {
         padding: 10,
         position: 'absolute',
         right: 35,
